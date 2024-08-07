@@ -1,6 +1,6 @@
 # cvae_tutorial
-This is a tutorial for CVAE
-There are three python files in this tutorial
+This is a tutorial for understanding CVAE.
+There are three python files in this tutorial:
 1. gencvaedata.py:
    This script generates the data for CVAE. The data are stored as dataforCVAE.csv
    The data are gaussian distributions with different means, variances, and magnitudes.
