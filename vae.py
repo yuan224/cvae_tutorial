@@ -115,6 +115,51 @@ def count_parameters(model):
         total_params += num_params
     print(f'Total parameters: {total_params}')
 
+# Generate new distributions from sampling the latent space
+def generate_distribution_from_z(model,latent_dim, num_samples, min_val, max_val):
+    # Example of generating new distributions using the trained VAE
+    model.eval()
+    with torch.no_grad():
+        z = torch.randn(num_samples, latent_dim)
+        generated_distributions = model.decode(z).numpy()
+        # Rescale each distribution individually
+        generated_distributions = rescale_distributions(generated_distributions, min_val, max_val)
+
+    # Display generated distributions
+    for i, dist in enumerate(generated_distributions):
+        plt.plot(np.linspace(0, 10, 100), dist, label=f'Generated {i+1}')
+    plt.xlabel('x')
+    plt.ylabel('p(x)')
+    plt.title('Generated Distributions using VAE')
+    plt.legend()
+    plt.show()
+
+# Function to generate a distribution
+def generate_distribution(a, b, c, x):
+    return a * np.exp(-b * (x - c) ** 2)
+
+# Function to test VAE
+def test_vae(model, a, b, c):
+    x = np.linspace(0, 10, 100)
+    original_distribution = generate_distribution(a, b, c, x)
+    original_distribution = original_distribution.reshape(1, -1)
+    original_distribution, min_val, max_val = normalize_distributions(original_distribution)
+    original_distribution_tensor = torch.tensor(original_distribution, dtype=torch.float32)
+
+    model.eval()
+    with torch.no_grad():
+        reconstructed_distribution, _, _ = model(original_distribution_tensor)
+        reconstructed_distribution = reconstructed_distribution.numpy().flatten()
+        reconstructed_distribution = rescale_distributions(reconstructed_distribution, min_val, max_val)
+
+    plt.plot(x, original_distribution.flatten(), label='Original Distribution')
+    plt.plot(x, reconstructed_distribution, label='Reconstructed Distribution', linestyle='--')
+    plt.xlabel('x')
+    plt.ylabel('p(x)')
+    plt.title('Original vs Reconstructed Distribution')
+    plt.legend()
+    plt.show()
+
 # Training function
 def train_vae(model, train_data, val_data, epochs, batch_size, model_path='vae_model.pth'):
     train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True)
@@ -175,23 +220,11 @@ def main():
     else :
         train_data, val_data, min_val, max_val = load_and_split_data(csv_path)
 
-    # Example of generating new distributions using the trained VAE
-    model.eval()
-    with torch.no_grad():
-        z = torch.randn(10, latent_dim)
-        generated_distributions = model.decode(z).numpy()
-        # Rescale each distribution individually
-        generated_distributions = rescale_distributions(generated_distributions, min_val, max_val)
+    # Generate new distributions from sampling the latent space
+    generate_distribution_from_z(model,latent_dim, 10, min_val, max_val)
 
-    # Display generated distributions
-    for i, dist in enumerate(generated_distributions):
-        plt.plot(np.linspace(0, 10, 100), dist, label=f'Generated {i+1}')
-    plt.xlabel('x')
-    plt.ylabel('p(x)')
-    plt.title('Generated Distributions using VAE')
-    plt.legend()
-    plt.show()
-
+    # Test VAE with a generated distribution
+    test_vae(model, a=1.0, b=5.0, c=3.0)
 
 if __name__ == '__main__':
     main()

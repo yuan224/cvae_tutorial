@@ -112,6 +112,53 @@ def count_parameters(model):
         total_params += num_params
     print(f'Total parameters: {total_params}')
 
+# Function to generate a distribution
+def generate_distribution(a, b, c, x):
+    return a * np.exp(-b * (x - c) ** 2)
+
+# Generate new distributions from sampling the latent space with conditions
+def generate_distribution_from_z_c(model, cond, latent_dim, min_val, max_val):    
+    model.eval()
+    with torch.no_grad():
+        z = torch.randn(cond.shape[0], latent_dim)
+        cond = torch.tensor(cond, dtype=torch.float32)
+        generated_distributions = model.decode(z, cond).numpy()
+        # Rescale each distribution individually
+        generated_distributions = rescale_distributions(generated_distributions, min_val, max_val)
+
+    # Display generated distributions
+    for i, dist in enumerate(generated_distributions):
+        plt.plot(np.linspace(0, 10, 100), dist, label=f'Generated {i + 1}')
+    plt.xlabel('x')
+    plt.ylabel('p(x)')
+    plt.title('Generated Distributions using CVAE')
+    plt.legend()
+    plt.show()
+
+# Function to test CVAE
+def test_cvae(model, cond, a, b, c):
+    x = np.linspace(0, 10, 100)
+    original_distribution = generate_distribution(a, b, c, x)
+    original_distribution = original_distribution.reshape(1, -1)
+    original_distribution, min_val, max_val = normalize_distributions(original_distribution)
+    original_distribution_tensor = torch.tensor(original_distribution, dtype=torch.float32)
+    cond_tensor = torch.tensor([[cond]], dtype=torch.float32)
+
+    model.eval()
+    with torch.no_grad():
+        mu, logvar = model.encode(original_distribution_tensor, cond_tensor)
+        z = model.reparameterize(mu, logvar)
+        reconstructed_distribution = model.decode(z, cond_tensor).numpy().flatten()
+        reconstructed_distribution = rescale_distributions(reconstructed_distribution, min_val, max_val)
+
+    plt.plot(x, original_distribution.flatten(), label='Original Distribution')
+    plt.plot(x, reconstructed_distribution, label='Reconstructed Distribution', linestyle='--')
+    plt.xlabel('x')
+    plt.ylabel('p(x)')
+    plt.title('Original vs Reconstructed Distribution')
+    plt.legend()
+    plt.show()
+
 def train_cvae(model, train_data, val_data, epochs, batch_size, model_path='cvae31_model.pth'):
     train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True)
     val_loader = DataLoader(val_data, batch_size=batch_size, shuffle=False)
@@ -176,7 +223,7 @@ def main():
     if os.path.exists(model_path):
         load_model(model, model_path)
 
-    trainflag = True
+    trainflag = False
 
     if trainflag:
         # Load and split data
@@ -189,17 +236,12 @@ def main():
         train_data, val_data, min_val, max_val = load_and_split_data(csv_path)
 
     # Example of generating new distributions using the trained CVAE
-    cond = np.array([[1], [3], [5], [7], [9]])  
-    generated_distributions = generate_distributions(model, cond, latent_dim, min_val, max_val)
+    cond = np.array([[1], [3], [5], [7], [9]])  #conditions
+    generate_distribution_from_z_c(model, cond, latent_dim, min_val, max_val)
 
-    # Display generated distributions
-    for i, dist in enumerate(generated_distributions):
-        plt.plot(np.linspace(0, 10, 100), dist, label=f'Generated {i + 1}')
-    plt.xlabel('x')
-    plt.ylabel('p(x)')
-    plt.title('Generated Distributions using CVAE')
-    plt.legend()
-    plt.show()
+
+    # Test CVAE with a generated distribution
+    test_cvae(model, cond=9, a=1.0, b=5.0, c=3.0)
 
 if __name__ == '__main__':
     main()
