@@ -43,4 +43,4 @@ plt.show()
 print(df.head())
 
 # Save the DataFrame for later use
-df.to_csv('dataforCVAE3.csv', index=False)
+df.to_csv('dataforCVAE.csv', index=False)

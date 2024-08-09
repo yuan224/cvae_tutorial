@@ -211,7 +211,7 @@ def main():
     cond_dim = 1  # Conditioning on (a1, b1, c1)
     epochs = 100
     batch_size = 25
-    csv_path = 'dataforCVAE3.csv'
+    csv_path = 'dataforCVAE.csv'
 
     # Initialize model
     model = CVAE(input_dim, latent_dim, cond_dim)
@@ -241,7 +241,7 @@ def main():
     generate_distribution_from_z_c(model, cond, latent_dim, min_val, max_val)
 
     # Test CVAE with a generated distribution
-    test_cvae(model, cond=9, a=1.0, b=5.0, c=3.0)
+    test_cvae(model, cond=7, a=1.0, b=5.0, c=3.0)
 
 if __name__ == '__main__':
     main()

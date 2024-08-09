@@ -145,7 +145,7 @@ def main():
     latent_dim = 5
     epochs = 100
     batch_size = 25
-    csv_path = 'dataforCVAE3.csv'
+    csv_path = 'dataforCVAE.csv'
 
     # Initialize model
     model = Autoencoder(input_dim, latent_dim)
