@@ -1,5 +1,5 @@
 # cvae_tutorial
-This is a tutorial for understanding CVAE. We start from generating data (gencvaedata.py), then develop three different models, autoencoder (ae.py), VAE (vae.py), and CVAE (cvae.py). The autoencoder (ae.py) illustrates the compression and decompression of the data. The VAE (vae.py) illustrates regulation of compressed data (latent space z) to a standard normal. The CVAE (cvae.py) illustrates the inclusion of the label information in the latent space.
+This is a tutorial for understanding CVAE. We start from generating data (gencvaedata.py), then develop three different models, autoencoder (ae.py), VAE (vae.py), and CVAE (cvae.py). The autoencoder (ae.py) illustrates the compression and decompression of the data. The VAE (vae.py) illustrates regulation of compressed data (latent space z) to a standard normal. The CVAE (cvae.py) illustrates the inclusion of the label information in the latent space. The code in this toturial is created mostly with the help of ChatGPT-4o.
 There are four python files in this tutorial:
 1. gencvaedata.py:
    This script generates the data for CVAE. The data are stored as dataforCVAE.csv
