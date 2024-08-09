@@ -8,6 +8,7 @@ from torch.utils.data import Dataset, DataLoader
 import matplotlib.pyplot as plt
 import os
 
+
 # This CVAE uses labels in the 100 to 102 columns of the dataframe as condition
 
 # Define the CVAE model
@@ -159,7 +160,7 @@ def test_cvae(model, cond, a, b, c):
     plt.legend()
     plt.show()
 
-def train_cvae(model, train_data, val_data, epochs, batch_size, model_path='cvae31_model.pth'):
+def train_cvae(model, train_data, val_data, epochs, batch_size, model_path='cvae_model.pth'):
     train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True)
     val_loader = DataLoader(val_data, batch_size=batch_size, shuffle=False)
     
@@ -219,7 +220,7 @@ def main():
     count_parameters(model)
 
     # Load model if the file exists
-    model_path = 'cvae31_model.pth'
+    model_path = 'cvae_model.pth'
     if os.path.exists(model_path):
         load_model(model, model_path)
 
@@ -238,7 +239,6 @@ def main():
     # Example of generating new distributions using the trained CVAE
     cond = np.array([[1], [3], [5], [7], [9]])  #conditions
     generate_distribution_from_z_c(model, cond, latent_dim, min_val, max_val)
-
 
     # Test CVAE with a generated distribution
     test_cvae(model, cond=9, a=1.0, b=5.0, c=3.0)

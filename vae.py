@@ -160,6 +160,89 @@ def test_vae(model, a, b, c):
     plt.legend()
     plt.show()
 
+def plot_latent_histograms(model, train_data, batch_size=25):
+    """
+    Plots histograms of each latent dimension z using the training data.
+
+    Args:
+        model: Trained VAE model.
+        train_data: Training dataset.
+        batch_size: Batch size for DataLoader.
+    """
+    train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=False)
+
+    model.eval()
+    latent_vectors = []
+
+    with torch.no_grad():
+        for data, _ in train_loader:
+            mu, logvar = model.encode(data)
+            z = model.reparameterize(mu, logvar)
+            latent_vectors.append(z)
+
+    # Concatenate all latent vectors
+    latent_vectors = torch.cat(latent_vectors, dim=0).cpu().numpy()
+
+    # Plot histograms for each dimension of the latent space
+    latent_dim = latent_vectors.shape[1]
+    plt.figure(figsize=(15, 10))
+    for i in range(latent_dim):
+        plt.subplot(latent_dim, 1, i + 1)
+        plt.hist(latent_vectors[:, i], bins=30, color='blue', alpha=0.7)
+        plt.title(f'Histogram of Latent Dimension {i + 1}')
+        plt.xlabel('Value')
+        plt.ylabel('Frequency')
+
+    plt.tight_layout()
+    plt.show()
+
+def plot_mu_sigma_histograms(model, train_data, batch_size=25):
+    """
+    Plots histograms of mu (mean) and sigma (standard deviation) for each latent dimension
+    using the training data.
+
+    Args:
+        model: Trained VAE model.
+        train_data: Training dataset.
+        batch_size: Batch size for DataLoader.
+    """
+    train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=False)
+
+    model.eval()
+    mu_list = []
+    sigma_list = []
+
+    with torch.no_grad():
+        for data, _ in train_loader:
+            mu, logvar = model.encode(data)
+            sigma = torch.exp(0.5 * logvar)
+            mu_list.append(mu)
+            sigma_list.append(sigma)
+
+    # Concatenate all mu and sigma vectors
+    mu_list = torch.cat(mu_list, dim=0).cpu().numpy()
+    sigma_list = torch.cat(sigma_list, dim=0).cpu().numpy()
+
+    # Plot histograms for each dimension of mu and sigma
+    latent_dim = mu_list.shape[1]
+    plt.figure(figsize=(15, 20))
+
+    for i in range(latent_dim):
+        plt.subplot(2 * latent_dim, 1, 2 * i + 1)
+        plt.hist(mu_list[:, i], bins=30, color='green', alpha=0.7)
+        plt.title(f'Histogram of Mu (Mean) for Latent Dimension {i + 1}')
+        plt.xlabel('Value')
+        plt.ylabel('Frequency')
+
+        plt.subplot(2 * latent_dim, 1, 2 * i + 2)
+        plt.hist(sigma_list[:, i], bins=30, color='red', alpha=0.7)
+        plt.title(f'Histogram of Sigma (Std Dev) for Latent Dimension {i + 1}')
+        plt.xlabel('Value')
+        plt.ylabel('Frequency')
+
+    plt.tight_layout()
+    plt.show()
+
 # Training function
 def train_vae(model, train_data, val_data, epochs, batch_size, model_path='vae_model.pth'):
     train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True)
@@ -225,6 +308,12 @@ def main():
 
     # Test VAE with a generated distribution
     test_vae(model, a=1.0, b=5.0, c=3.0)
+
+    # Plot histograms of each latent dimension z using the training set data
+    plot_latent_histograms(model, train_data, 25)
+
+    # plot histograms for mu and sigma using the training set data
+    plot_mu_sigma_histograms(model, train_data, 25)
 
 if __name__ == '__main__':
     main()
